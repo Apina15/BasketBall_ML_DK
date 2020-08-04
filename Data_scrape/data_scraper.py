@@ -1,65 +1,43 @@
+# API to get data from basketball reference
 from basketball_reference_web_scraper import client
 from basketball_reference_web_scraper.data import Team
 from basketball_reference_web_scraper.data import OutputType
 
 import pandas as pd 
 
-# current data 11/12
+# Library to get the range of a date 
+import datetime as dt
 
-months = [10,11,12,1,2,3,4]
-oct = range(22, 32)
-# nov = range(1, 30)
-# dec = range(1, 31)
-# jan = range(1, 31)
-# feb = range(1, 29)
-# mar = range(1, 31)
-apr = range(1, 16)
+# How to get the date from timestamp 
+# temp = temp.strftime("%d-%b-%Y (%H:%M:%S.%f)")
 
-d_tn = range(1, 30)
-d_t = range(1, 31)
-d_to = range(1, 32)
+# Getting the range of days from the start of the season until the postpone date
+# pd.date_range(start = "2019-10-22", end = datetime.now())
+dates_range_ = pd.date_range(start = "2019-10-22", end = "2019-10-23")
 
-current_m = 1
-current_d = 30
-
-i = 0
-d = 0
-m = oct
-# print(m[len(m)-1])
 loop = True
 
-df_total = pd.DataFrame(columns=['assists', 'attempted_field_goals', 'attempted_free_throws', 'attempted_three_point_field_goals', 'blocks', 
+# The desired data from basketball refrence we want
+Total_data = pd.DataFrame(columns=['assists', 'attempted_field_goals', 'attempted_free_throws', 'attempted_three_point_field_goals', 'blocks', 
         'defensive_rebounds', 'game_score', 'location', 'made_field_goals', 'made_free_throws', 'made_three_point_field_goals', 
         'name', 'offensive_rebounds', 'opponent', 'outcome', 'personal_fouls', 'seconds_played', 'slug', 'steals', 'team', 'turnovers'])
 
-while(loop):
+for n in range(len(dates_range_)):
+    # Setting the day, month, and year
+    Day = dates_range_[n].strftime("%d")
+    Month = dates_range_[n].strftime("%m")    
+    Year = dates_range_[n].strftime("%Y")
     
-    print(months[i], ' Month')
-    print(m[d], ' day')
+    # Downloading the data with the API
+    download_list = client.player_box_scores(day = Day, month = Month, year = Year)
 
-    list_ = client.player_box_scores(day=m[d], month=months[i], year=2019)
-    df = pd.DataFrame(list_, columns=['assists', 'attempted_field_goals', 'attempted_free_throws', 'attempted_three_point_field_goals', 'blocks', 
+    # Setting the data in the form of columns we want
+    day_box_score = pd.DataFrame(download_list, columns=['assists', 'attempted_field_goals', 'attempted_free_throws', 'attempted_three_point_field_goals', 'blocks', 
         'defensive_rebounds', 'game_score', 'location', 'made_field_goals', 'made_free_throws', 'made_three_point_field_goals', 
         'name', 'offensive_rebounds', 'opponent', 'outcome', 'personal_fouls', 'seconds_played', 'slug', 'steals', 'team', 'turnovers'])
 
-    # print(df)
+    # Adding the new day's boxscore into the data frame with all of the data
+    Total_data = Total_data.append(day_box_score)
 
 
-    df_total = df_total.append(df)
-
-    # print(df_total)
-
-    if (months[i] == current_m):
-        if (m[d] == current_d):
-            loop=False
-    if(m[d] == m[len(m)-1]):
-        i+=1
-        d=-1
-        if(i==1 or i == 2 or i == 5):
-            m = d_to
-        
-    # print(len(m))
-    d+=1
-
-
-df_total.to_csv("Current_box_scores.csv", index=False)
+Total_data.to_csv("Current_box_scores.csv", index=False)
